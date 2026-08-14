@@ -1,0 +1,169 @@
+/* ==========================================================================
+   Animated Rose - Video Style with Romantic Handwriting Font
+   ========================================================================== */
+
+:root {
+  --bg-color: #07040d;
+  --primary-glow: #ff1744;
+  --secondary-glow: #ff4081;
+  --text-main: #ffffff;
+  --text-muted: #9ca3af;
+  --glass-blur: blur(12px);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  user-select: none;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Background Particle Canvas */
+#bgCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Main Display Stage Container */
+.stage-container {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Ambient Glow Behind Rose */
+.rose-glow {
+  position: absolute;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255, 23, 68, 0.45) 0%, rgba(255, 23, 68, 0) 70%);
+  filter: blur(60px);
+  border-radius: 50%;
+  pointer-events: none;
+  animation: pulseGlow 4s infinite alternate ease-in-out;
+}
+
+/* Rose Canvas Wrapper */
+.rose-canvas-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  height: 72vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#roseCanvas {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 20px 35px rgba(0,0,0,0.7));
+}
+
+/* Text Overlay (Revealed at the End of Blooming) */
+.text-overlay {
+  position: absolute;
+  bottom: 6vh;
+  text-align: center;
+  z-index: 20;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.typing-text-container {
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Beautiful Romantic Font Style */
+.romantic-text {
+  font-family: 'Great Vibes', 'Dancing Script', cursive;
+  font-size: 3.2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ffffff 0%, #ff80ab 50%, #ff1744 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 25px rgba(255, 23, 68, 0.7), 0 0 50px rgba(255, 64, 129, 0.5);
+  letter-spacing: 1px;
+  line-height: 1.2;
+  transition: opacity 0.5s ease;
+}
+
+.blinking-cursor {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.8rem;
+  color: #ff4081;
+  margin-left: 4px;
+  animation: blink 0.8s infinite;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.blinking-cursor.active {
+  opacity: 1;
+}
+
+.click-hint {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 6px 18px;
+  border-radius: 20px;
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.8s ease;
+}
+
+.click-hint.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Keyframe Animations */
+@keyframes pulseGlow {
+  0% { transform: scale(0.9); opacity: 0.35; }
+  100% { transform: scale(1.15); opacity: 0.6; }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@media (max-width: 600px) {
+  .romantic-text { font-size: 2.3rem; }
+  .blinking-cursor { font-size: 2rem; }
+  .rose-canvas-wrapper { height: 62vh; }
+}

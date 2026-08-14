@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Animated Blooming Rose</title>
+  <meta name="description" content="Animated Rose Coded with HTML, CSS & JavaScript">
+  
+  <!-- Premium Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Dancing+Script:wght@700&family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Ambient Particle Canvas -->
+  <canvas id="bgCanvas"></canvas>
+
+  <!-- Display Stage Container -->
+  <main class="stage-container">
+    
+    <!-- Ambient Red Glow -->
+    <div class="rose-glow" id="roseGlow"></div>
+
+    <!-- Rose Canvas -->
+    <div class="rose-canvas-wrapper" id="canvasWrapper">
+      <canvas id="roseCanvas"></canvas>
+    </div>
+
+    <!-- Romantic Text Overlay Revealed at the end of blooming -->
+    <div class="text-overlay">
+      <div class="typing-text-container" id="typingContainer">
+        <span class="romantic-text" id="romanticText"></span><span class="blinking-cursor" id="cursor">|</span>
+      </div>
+      <div class="click-hint" id="clickHint">Click anywhere to re-bloom ✨</div>
+    </div>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
