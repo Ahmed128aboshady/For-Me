@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Animated Blooming Rose Engine with Start "Wait for the end" & Faster Bloom
+   Animated Blooming Rose Engine with Full Mobile & Touch Support
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Animation State ---
   let bloomProgress = 0; // Starts from 0
   let targetProgress = 1;
-  let animSpeed = 0.0075; // Faster, dynamic blooming speed!
+  let animSpeed = 0.0078; // Dynamic, responsive blooming speed!
 
   let targetTiltX = 0, targetTiltY = 0;
   let tiltX = 0, tiltY = 0;
@@ -58,7 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isTypingStarted) return;
     isTypingStarted = true;
 
-    // Hide wait text and reveal typing cursor
     waitTextEl.classList.add('hidden');
     cursorEl.classList.add('active');
 
@@ -81,22 +80,37 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   window.addEventListener('resize', resizeCanvases);
+  window.addEventListener('orientationchange', resizeCanvases);
   resizeCanvases();
 
-  // Mouse Parallax Interaction
-  document.addEventListener('mousemove', (e) => {
+  // Mouse & Touch Parallax Interaction
+  function handlePointerMove(clientX, clientY) {
     const cx = window.innerWidth / 2;
     const cy = window.innerHeight / 2;
-    targetTiltX = (e.clientX - cx) / cx * 0.15;
-    targetTiltY = (e.clientY - cy) / cy * 0.15;
-  });
+    targetTiltX = (clientX - cx) / cx * 0.15;
+    targetTiltY = (clientY - cy) / cy * 0.15;
+  }
 
-  // Re-bloom on Click anywhere
-  document.body.addEventListener('click', () => {
+  document.addEventListener('mousemove', (e) => handlePointerMove(e.clientX, e.clientY));
+  document.addEventListener('touchmove', (e) => {
+    if (e.touches.length > 0) {
+      handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+    }
+  }, { passive: true });
+
+  // Re-bloom on Click or Touch anywhere
+  function triggerRebloom(e) {
+    // Avoid double triggering from touch + click
+    if (e.type === 'touchstart') {
+      e.preventDefault();
+    }
     bloomProgress = 0;
     targetProgress = 1;
     resetTypingText();
-  });
+  }
+
+  document.body.addEventListener('click', triggerRebloom);
+  document.body.addEventListener('touchstart', triggerRebloom, { passive: false });
 
   // --- Falling Petals & Glow Particles ---
   class Particle {
@@ -148,7 +162,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  const particles = Array.from({ length: 50 }, () => new Particle());
+  const particleCount = window.innerWidth < 600 ? 35 : 50;
+  const particles = Array.from({ length: particleCount }, () => new Particle());
 
   function renderBackground() {
     bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
@@ -172,13 +187,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     ctx.save();
     const originX = w / 2;
-    const originY = h * 0.82;
+    const originY = h * 0.84;
 
     ctx.translate(originX, originY);
     ctx.rotate(tiltX * 0.4);
 
     // Step 1: Grow Stem (0% to 35% progress)
-    const stemHeight = h * 0.45;
+    const stemHeight = h * 0.44;
     const stemProgress = Math.min(bloomProgress / 0.35, 1);
 
     if (stemProgress > 0) {
@@ -194,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const endY = -stemHeight * stemProgress;
 
       ctx.bezierCurveTo(ctrl1X, ctrl1Y, ctrl2X, ctrl2Y, endX, endY);
-      ctx.lineWidth = 11 * dpr;
+      ctx.lineWidth = 10 * dpr;
       ctx.lineCap = 'round';
 
       const stemGrad = ctx.createLinearGradient(0, 0, 0, -stemHeight);
@@ -245,7 +260,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Petal Layers (Outer to Inner)
       const numPetalLayers = 7;
-      const maxPetalRadius = 130 * dpr;
+      const basePetalScale = Math.min(w, h) * 0.26;
+      const maxPetalRadius = basePetalScale;
 
       for (let layer = numPetalLayers; layer >= 1; layer--) {
         const layerProgress = Math.min(Math.max((roseProgress - (numPetalLayers - layer) * 0.1) / 0.45, 0), 1);
@@ -366,7 +382,6 @@ document.addEventListener('DOMContentLoaded', () => {
       bloomProgress = Math.min(bloomProgress + animSpeed, targetProgress);
     }
 
-    // Trigger typing EXACTLY when bloom hits 1.0 (final petal completed)
     if (bloomProgress >= 1.0) {
       startTypingEffect();
     }
