@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Animated Blooming Rose Engine (Typing triggers on final petal completion)
+   Animated Blooming Rose Engine with Start "Wait for the end" & Faster Bloom
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -17,7 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Animation State ---
   let bloomProgress = 0; // Starts from 0
   let targetProgress = 1;
-  let animSpeed = 0.0038; // Smooth realistic blooming speed
+  let animSpeed = 0.0075; // Faster, dynamic blooming speed!
+
   let targetTiltX = 0, targetTiltY = 0;
   let tiltX = 0, tiltY = 0;
 
@@ -27,6 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let isTypingStarted = false;
   let typingTimeout = null;
 
+  const waitTextEl = document.getElementById('waitText');
   const romanticTextEl = document.getElementById('romanticText');
   const cursorEl = document.getElementById('cursor');
   const clickHintEl = document.getElementById('clickHint');
@@ -36,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
     isTypingStarted = false;
     typedIndex = 0;
     romanticTextEl.textContent = '';
+    waitTextEl.classList.remove('hidden');
     cursorEl.classList.remove('active');
     clickHintEl.classList.remove('visible');
   }
@@ -44,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typedIndex < messageText.length) {
       romanticTextEl.textContent += messageText.charAt(typedIndex);
       typedIndex++;
-      typingTimeout = setTimeout(typeNextChar, 75); // Elegant typing cadence
+      typingTimeout = setTimeout(typeNextChar, 70); // Smooth typing pace
     } else {
       cursorEl.classList.remove('active');
       clickHintEl.classList.add('visible');
@@ -54,8 +57,12 @@ document.addEventListener('DOMContentLoaded', () => {
   function startTypingEffect() {
     if (isTypingStarted) return;
     isTypingStarted = true;
+
+    // Hide wait text and reveal typing cursor
+    waitTextEl.classList.add('hidden');
     cursorEl.classList.add('active');
-    setTimeout(typeNextChar, 250); // Tiny pause right as the last petal opens
+
+    setTimeout(typeNextChar, 200); // Slight pause right when final petal completes
   }
 
   // --- Canvas Setup ---
@@ -100,10 +107,10 @@ document.addEventListener('DOMContentLoaded', () => {
       this.x = Math.random() * bgCanvas.width;
       this.y = -20;
       this.size = Math.random() * 8 + 4;
-      this.speedY = Math.random() * 1.2 + 0.4;
+      this.speedY = Math.random() * 1.4 + 0.6;
       this.speedX = Math.sin(Math.random() * Math.PI * 2) * 0.8;
       this.rotation = Math.random() * Math.PI * 2;
-      this.rotSpeed = (Math.random() - 0.5) * 0.025;
+      this.rotSpeed = (Math.random() - 0.5) * 0.03;
       this.opacity = Math.random() * 0.7 + 0.3;
       this.type = Math.random() > 0.35 ? 'petal' : 'star';
     }
@@ -359,7 +366,7 @@ document.addEventListener('DOMContentLoaded', () => {
       bloomProgress = Math.min(bloomProgress + animSpeed, targetProgress);
     }
 
-    // Trigger typing EXACTLY when bloom hits 1.0 (final petal layer opens)
+    // Trigger typing EXACTLY when bloom hits 1.0 (final petal completed)
     if (bloomProgress >= 1.0) {
       startTypingEffect();
     }

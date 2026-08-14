@@ -120,7 +120,19 @@ body {
   text-shadow: 0 0 25px rgba(255, 23, 68, 0.7), 0 0 50px rgba(255, 64, 129, 0.5);
   letter-spacing: 1px;
   line-height: 1.2;
-  transition: opacity 0.5s ease;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.initial-text {
+  animation: pulseText 2s infinite ease-in-out;
+  opacity: 1;
+}
+
+.initial-text.hidden {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+  display: none;
 }
 
 .blinking-cursor {
@@ -160,6 +172,11 @@ body {
   100% { transform: scale(1.15); opacity: 0.6; }
 }
 
+@keyframes pulseText {
+  0%, 100% { opacity: 0.85; transform: scale(0.98); }
+  50% { opacity: 1; transform: scale(1.03); }
+}
+
 @keyframes blink {
   0%, 100% { opacity: 1; }
   50% { opacity: 0; }
@@ -183,6 +200,7 @@ body {
     </div>
     <div class="text-overlay">
       <div class="typing-text-container" id="typingContainer">
+        <span class="romantic-text initial-text" id="waitText">Wait for the end ✨</span>
         <span class="romantic-text" id="romanticText"></span><span class="blinking-cursor" id="cursor">|</span>
       </div>
       <div class="click-hint" id="clickHint">Click anywhere to re-bloom ✨</div>
@@ -204,7 +222,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let bloomProgress = 0;
   let targetProgress = 1;
-  let animSpeed = 0.0038;
+  let animSpeed = 0.0075;
+
   let targetTiltX = 0, targetTiltY = 0;
   let tiltX = 0, tiltY = 0;
 
@@ -213,6 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let isTypingStarted = false;
   let typingTimeout = null;
 
+  const waitTextEl = document.getElementById('waitText');
   const romanticTextEl = document.getElementById('romanticText');
   const cursorEl = document.getElementById('cursor');
   const clickHintEl = document.getElementById('clickHint');
@@ -222,6 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
     isTypingStarted = false;
     typedIndex = 0;
     romanticTextEl.textContent = '';
+    waitTextEl.classList.remove('hidden');
     cursorEl.classList.remove('active');
     clickHintEl.classList.remove('visible');
   }
@@ -230,7 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typedIndex < messageText.length) {
       romanticTextEl.textContent += messageText.charAt(typedIndex);
       typedIndex++;
-      typingTimeout = setTimeout(typeNextChar, 75);
+      typingTimeout = setTimeout(typeNextChar, 70);
     } else {
       cursorEl.classList.remove('active');
       clickHintEl.classList.add('visible');
@@ -240,8 +261,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function startTypingEffect() {
     if (isTypingStarted) return;
     isTypingStarted = true;
+
+    waitTextEl.classList.add('hidden');
     cursorEl.classList.add('active');
-    setTimeout(typeNextChar, 250);
+
+    setTimeout(typeNextChar, 200);
   }
 
   const roseCanvas = document.getElementById('roseCanvas');
@@ -279,10 +303,10 @@ document.addEventListener('DOMContentLoaded', () => {
       this.x = Math.random() * bgCanvas.width;
       this.y = -20;
       this.size = Math.random() * 8 + 4;
-      this.speedY = Math.random() * 1.2 + 0.4;
+      this.speedY = Math.random() * 1.4 + 0.6;
       this.speedX = Math.sin(Math.random() * Math.PI * 2) * 0.8;
       this.rotation = Math.random() * Math.PI * 2;
-      this.rotSpeed = (Math.random() - 0.5) * 0.025;
+      this.rotSpeed = (Math.random() - 0.5) * 0.03;
       this.opacity = Math.random() * 0.7 + 0.3;
       this.type = Math.random() > 0.35 ? 'petal' : 'star';
     }
