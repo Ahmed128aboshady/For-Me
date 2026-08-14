@@ -30,15 +30,15 @@
 }
 
 html, body {
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
+  position: relative;
 }
 
 body {
   background-color: var(--bg-color);
   color: var(--text-main);
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -47,11 +47,11 @@ body {
 }
 
 #bgCanvas {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   z-index: 0;
   pointer-events: none;
 }
@@ -60,21 +60,22 @@ body {
   position: relative;
   z-index: 10;
   width: 100%;
-  height: 100%;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
   padding: 2vh 1rem 4vh 1rem;
+  overflow: hidden;
 }
 
 .rose-glow {
   position: absolute;
-  top: 35%;
+  top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: min(80vw, 400px);
-  height: min(80vw, 400px);
+  width: min(80vw, 420px);
+  height: min(80vw, 420px);
   background: radial-gradient(circle, rgba(255, 23, 68, 0.45) 0%, rgba(255, 23, 68, 0) 70%);
   filter: blur(60px);
   border-radius: 50%;
@@ -85,17 +86,19 @@ body {
 .rose-canvas-wrapper {
   position: relative;
   width: 100%;
-  max-width: 550px;
-  height: 68vh;
+  max-width: 500px;
+  flex: 1;
+  min-height: 250px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 2vh;
+  margin-top: 1vh;
 }
 
 #roseCanvas {
   width: 100%;
   height: 100%;
+  display: block;
   filter: drop-shadow(0 15px 30px rgba(0,0,0,0.7));
 }
 
@@ -111,7 +114,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-bottom: 1vh;
+  margin-bottom: 2vh;
 }
 
 .typing-text-container {
@@ -201,17 +204,8 @@ body {
   .stage-container {
     padding: 1vh 0.8rem 2.5vh 0.8rem;
   }
-  .rose-canvas-wrapper {
-    height: 64vh;
-  }
   .typing-text-container {
     min-height: 48px;
-  }
-}
-
-@media (max-height: 650px) {
-  .rose-canvas-wrapper {
-    height: 58vh;
   }
 }
   </style>
@@ -301,11 +295,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const bgCtx = bgCanvas.getContext('2d');
 
   function resizeCanvases() {
+    const dpr = window.devicePixelRatio || 1;
+    
+    bgCanvas.width = Math.floor(window.innerWidth * dpr);
+    bgCanvas.height = Math.floor(window.innerHeight * dpr);
+
     const rect = roseCanvas.parentElement.getBoundingClientRect();
-    roseCanvas.width = rect.width * window.devicePixelRatio;
-    roseCanvas.height = rect.height * window.devicePixelRatio;
-    bgCanvas.width = window.innerWidth;
-    bgCanvas.height = window.innerHeight;
+    if (rect.width > 0 && rect.height > 0) {
+      roseCanvas.width = Math.floor(rect.width * dpr);
+      roseCanvas.height = Math.floor(rect.height * dpr);
+    }
   }
 
   window.addEventListener('resize', resizeCanvases);
@@ -341,7 +340,7 @@ document.addEventListener('DOMContentLoaded', () => {
   class Particle {
     constructor() { this.reset(); }
     reset() {
-      this.x = Math.random() * bgCanvas.width;
+      this.x = Math.random() * window.innerWidth;
       this.y = -20;
       this.size = Math.random() * 8 + 4;
       this.speedY = Math.random() * 1.4 + 0.6;
@@ -355,7 +354,7 @@ document.addEventListener('DOMContentLoaded', () => {
       this.y += this.speedY;
       this.x += Math.sin(this.y * 0.01) * 0.8 + this.speedX;
       this.rotation += this.rotSpeed;
-      if (this.y > bgCanvas.height + 20) { this.reset(); }
+      if (this.y > window.innerHeight + 20) { this.reset(); }
     }
     draw() {
       bgCtx.save();
@@ -387,23 +386,43 @@ document.addEventListener('DOMContentLoaded', () => {
   const particles = Array.from({ length: particleCount }, () => new Particle());
 
   function renderBackground() {
-    bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
-    particles.forEach(p => { p.update(); p.draw(); });
+    const dpr = window.devicePixelRatio || 1;
+    bgCtx.save();
+    bgCtx.scale(dpr, dpr);
+    bgCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+    particles.forEach(p => {
+      p.update();
+      p.draw();
+    });
+
+    bgCtx.restore();
   }
 
   function drawRose() {
-    const w = roseCanvas.width;
-    const h = roseCanvas.height;
-    const dpr = window.devicePixelRatio;
+    const rect = roseCanvas.parentElement.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+    const dpr = window.devicePixelRatio || 1;
 
+    if (w <= 0 || h <= 0) return;
+
+    const targetW = Math.floor(w * dpr);
+    const targetH = Math.floor(h * dpr);
+    if (roseCanvas.width !== targetW || roseCanvas.height !== targetH) {
+      roseCanvas.width = targetW;
+      roseCanvas.height = targetH;
+    }
+
+    ctx.save();
+    ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, w, h);
 
     tiltX += (targetTiltX - tiltX) * 0.05;
     tiltY += (targetTiltY - tiltY) * 0.05;
 
-    ctx.save();
     const originX = w / 2;
-    const originY = h * 0.84;
+    const originY = h * 0.82;
 
     ctx.translate(originX, originY);
     ctx.rotate(tiltX * 0.4);
@@ -424,7 +443,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const endY = -stemHeight * stemProgress;
 
       ctx.bezierCurveTo(ctrl1X, ctrl1Y, ctrl2X, ctrl2Y, endX, endY);
-      ctx.lineWidth = 10 * dpr;
+      ctx.lineWidth = Math.max(8, Math.min(12, w * 0.025));
       ctx.lineCap = 'round';
 
       const stemGrad = ctx.createLinearGradient(0, 0, 0, -stemHeight);
@@ -438,14 +457,14 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.stroke();
 
       if (stemProgress > 0.5) {
-        drawThorn(ctx, -6 * dpr, -stemHeight * 0.3, -1);
-        drawThorn(ctx, 6 * dpr, -stemHeight * 0.55, 1);
+        drawThorn(ctx, -6, -stemHeight * 0.3, -1);
+        drawThorn(ctx, 6, -stemHeight * 0.55, 1);
       }
 
       if (bloomProgress > 0.2) {
         const leafProgress = Math.min((bloomProgress - 0.2) / 0.3, 1);
-        drawLeaf(ctx, -10 * dpr, -stemHeight * 0.35, -1, leafProgress);
-        drawLeaf(ctx, 10 * dpr, -stemHeight * 0.6, 1, leafProgress);
+        drawLeaf(ctx, -10, -stemHeight * 0.35, -1, leafProgress);
+        drawLeaf(ctx, 10, -stemHeight * 0.6, 1, leafProgress);
       }
 
       ctx.restore();
@@ -464,14 +483,13 @@ document.addEventListener('DOMContentLoaded', () => {
       for (let i = 0; i < 5; i++) {
         const angle = (i / 5) * Math.PI * 2;
         ctx.beginPath();
-        ctx.ellipse(Math.cos(angle) * 8, Math.sin(angle) * 4 + 5, 7 * dpr, 18 * dpr, angle + Math.PI / 2, 0, Math.PI * 2);
+        ctx.ellipse(Math.cos(angle) * 8, Math.sin(angle) * 4 + 5, 6, 16, angle + Math.PI / 2, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.restore();
 
       const numPetalLayers = 7;
-      const basePetalScale = Math.min(w, h) * 0.26;
-      const maxPetalRadius = basePetalScale;
+      const maxPetalRadius = Math.min(w, h) * 0.28;
 
       for (let layer = numPetalLayers; layer >= 1; layer--) {
         const layerProgress = Math.min(Math.max((roseProgress - (numPetalLayers - layer) * 0.1) / 0.45, 0), 1);
@@ -500,7 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           ctx.fillStyle = petalGrad;
           ctx.shadowColor = theme.dark;
-          ctx.shadowBlur = 15 * dpr;
+          ctx.shadowBlur = 15;
 
           ctx.beginPath();
           ctx.moveTo(0, 0);
@@ -522,7 +540,7 @@ document.addEventListener('DOMContentLoaded', () => {
           ctx.fill();
 
           ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-          ctx.lineWidth = 1.2 * dpr;
+          ctx.lineWidth = 1.2;
           ctx.stroke();
 
           ctx.restore();
@@ -532,9 +550,9 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.save();
       ctx.fillStyle = theme.light;
       ctx.shadowColor = theme.primary;
-      ctx.shadowBlur = 22 * dpr;
+      ctx.shadowBlur = 22;
       ctx.beginPath();
-      ctx.arc(0, 0, 14 * dpr * Math.min(roseProgress * 1.5, 1), 0, Math.PI * 2);
+      ctx.arc(0, 0, 12 * Math.min(roseProgress * 1.5, 1), 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
 

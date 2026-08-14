@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Animated Rose - Mobile First & Fully Responsive Styling
+   Animated Rose - Fixed Responsive Fullscreen Layout
    ========================================================================== */
 
 :root {
@@ -20,15 +20,15 @@
 }
 
 html, body {
-  width: 100%;
-  height: 100%;
+  width: 100vw;
+  height: 100vh;
   overflow: hidden;
+  position: relative;
 }
 
 body {
   background-color: var(--bg-color);
   color: var(--text-main);
-  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -38,11 +38,11 @@ body {
 
 /* Background Particle Canvas */
 #bgCanvas {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
-  width: 100vw;
-  height: 100vh;
+  width: 100%;
+  height: 100%;
   z-index: 0;
   pointer-events: none;
 }
@@ -52,22 +52,23 @@ body {
   position: relative;
   z-index: 10;
   width: 100%;
-  height: 100%;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
   padding: 2vh 1rem 4vh 1rem;
+  overflow: hidden;
 }
 
 /* Ambient Glow Behind Rose */
 .rose-glow {
   position: absolute;
-  top: 35%;
+  top: 40%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: min(80vw, 400px);
-  height: min(80vw, 400px);
+  width: min(80vw, 420px);
+  height: min(80vw, 420px);
   background: radial-gradient(circle, rgba(255, 23, 68, 0.45) 0%, rgba(255, 23, 68, 0) 70%);
   filter: blur(60px);
   border-radius: 50%;
@@ -79,17 +80,19 @@ body {
 .rose-canvas-wrapper {
   position: relative;
   width: 100%;
-  max-width: 550px;
-  height: 68vh;
+  max-width: 500px;
+  flex: 1;
+  min-height: 250px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 2vh;
+  margin-top: 1vh;
 }
 
 #roseCanvas {
   width: 100%;
   height: 100%;
+  display: block;
   filter: drop-shadow(0 15px 30px rgba(0,0,0,0.7));
 }
 
@@ -106,7 +109,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-bottom: 1vh;
+  margin-bottom: 2vh;
 }
 
 .typing-text-container {
@@ -199,16 +202,7 @@ body {
   .stage-container {
     padding: 1vh 0.8rem 2.5vh 0.8rem;
   }
-  .rose-canvas-wrapper {
-    height: 64vh;
-  }
   .typing-text-container {
     min-height: 48px;
-  }
-}
-
-@media (max-height: 650px) {
-  .rose-canvas-wrapper {
-    height: 58vh;
   }
 }

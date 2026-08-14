@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Animated Blooming Rose Engine with Full Mobile & Touch Support
+   Animated Blooming Rose Engine - Fixed HDPI & Responsive Alignment
    ========================================================================== */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- Animation State ---
   let bloomProgress = 0; // Starts from 0
   let targetProgress = 1;
-  let animSpeed = 0.0078; // Dynamic, responsive blooming speed!
+  let animSpeed = 0.0078; // Dynamic blooming speed
 
   let targetTiltX = 0, targetTiltY = 0;
   let tiltX = 0, tiltY = 0;
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typedIndex < messageText.length) {
       romanticTextEl.textContent += messageText.charAt(typedIndex);
       typedIndex++;
-      typingTimeout = setTimeout(typeNextChar, 70); // Smooth typing pace
+      typingTimeout = setTimeout(typeNextChar, 70);
     } else {
       cursorEl.classList.remove('active');
       clickHintEl.classList.add('visible');
@@ -61,22 +61,26 @@ document.addEventListener('DOMContentLoaded', () => {
     waitTextEl.classList.add('hidden');
     cursorEl.classList.add('active');
 
-    setTimeout(typeNextChar, 200); // Slight pause right when final petal completes
+    setTimeout(typeNextChar, 200);
   }
 
-  // --- Canvas Setup ---
+  // --- Canvas Setup & High-DPI Handling ---
   const roseCanvas = document.getElementById('roseCanvas');
   const ctx = roseCanvas.getContext('2d');
   const bgCanvas = document.getElementById('bgCanvas');
   const bgCtx = bgCanvas.getContext('2d');
 
   function resizeCanvases() {
-    const rect = roseCanvas.parentElement.getBoundingClientRect();
-    roseCanvas.width = rect.width * window.devicePixelRatio;
-    roseCanvas.height = rect.height * window.devicePixelRatio;
+    const dpr = window.devicePixelRatio || 1;
     
-    bgCanvas.width = window.innerWidth;
-    bgCanvas.height = window.innerHeight;
+    bgCanvas.width = Math.floor(window.innerWidth * dpr);
+    bgCanvas.height = Math.floor(window.innerHeight * dpr);
+
+    const rect = roseCanvas.parentElement.getBoundingClientRect();
+    if (rect.width > 0 && rect.height > 0) {
+      roseCanvas.width = Math.floor(rect.width * dpr);
+      roseCanvas.height = Math.floor(rect.height * dpr);
+    }
   }
 
   window.addEventListener('resize', resizeCanvases);
@@ -98,9 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }, { passive: true });
 
-  // Re-bloom on Click or Touch anywhere
+  // Re-bloom on Click or Touch
   function triggerRebloom(e) {
-    // Avoid double triggering from touch + click
     if (e.type === 'touchstart') {
       e.preventDefault();
     }
@@ -118,7 +121,7 @@ document.addEventListener('DOMContentLoaded', () => {
       this.reset();
     }
     reset() {
-      this.x = Math.random() * bgCanvas.width;
+      this.x = Math.random() * window.innerWidth;
       this.y = -20;
       this.size = Math.random() * 8 + 4;
       this.speedY = Math.random() * 1.4 + 0.6;
@@ -132,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
       this.y += this.speedY;
       this.x += Math.sin(this.y * 0.01) * 0.8 + this.speedX;
       this.rotation += this.rotSpeed;
-      if (this.y > bgCanvas.height + 20) {
+      if (this.y > window.innerHeight + 20) {
         this.reset();
       }
     }
@@ -166,28 +169,47 @@ document.addEventListener('DOMContentLoaded', () => {
   const particles = Array.from({ length: particleCount }, () => new Particle());
 
   function renderBackground() {
-    bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+    const dpr = window.devicePixelRatio || 1;
+    bgCtx.save();
+    bgCtx.scale(dpr, dpr);
+    bgCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
     particles.forEach(p => {
       p.update();
       p.draw();
     });
+
+    bgCtx.restore();
   }
 
   // --- Procedural Animated Rose Renderer ---
   function drawRose() {
-    const w = roseCanvas.width;
-    const h = roseCanvas.height;
-    const dpr = window.devicePixelRatio;
+    const rect = roseCanvas.parentElement.getBoundingClientRect();
+    const w = rect.width;
+    const h = rect.height;
+    const dpr = window.devicePixelRatio || 1;
 
+    if (w <= 0 || h <= 0) return;
+
+    // Ensure internal canvas pixels match container * DPR
+    const targetW = Math.floor(w * dpr);
+    const targetH = Math.floor(h * dpr);
+    if (roseCanvas.width !== targetW || roseCanvas.height !== targetH) {
+      roseCanvas.width = targetW;
+      roseCanvas.height = targetH;
+    }
+
+    ctx.save();
+    ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, w, h);
 
     // Smooth tilt interpolation
     tiltX += (targetTiltX - tiltX) * 0.05;
     tiltY += (targetTiltY - tiltY) * 0.05;
 
-    ctx.save();
+    // Center origin horizontally, stem base at 82% of height
     const originX = w / 2;
-    const originY = h * 0.84;
+    const originY = h * 0.82;
 
     ctx.translate(originX, originY);
     ctx.rotate(tiltX * 0.4);
@@ -209,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const endY = -stemHeight * stemProgress;
 
       ctx.bezierCurveTo(ctrl1X, ctrl1Y, ctrl2X, ctrl2Y, endX, endY);
-      ctx.lineWidth = 10 * dpr;
+      ctx.lineWidth = Math.max(8, Math.min(12, w * 0.025));
       ctx.lineCap = 'round';
 
       const stemGrad = ctx.createLinearGradient(0, 0, 0, -stemHeight);
@@ -224,15 +246,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Thorns
       if (stemProgress > 0.5) {
-        drawThorn(ctx, -6 * dpr, -stemHeight * 0.3, -1);
-        drawThorn(ctx, 6 * dpr, -stemHeight * 0.55, 1);
+        drawThorn(ctx, -6, -stemHeight * 0.3, -1);
+        drawThorn(ctx, 6, -stemHeight * 0.55, 1);
       }
 
       // Step 2: Leaves sprout (20% to 50% progress)
       if (bloomProgress > 0.2) {
         const leafProgress = Math.min((bloomProgress - 0.2) / 0.3, 1);
-        drawLeaf(ctx, -10 * dpr, -stemHeight * 0.35, -1, leafProgress);
-        drawLeaf(ctx, 10 * dpr, -stemHeight * 0.6, 1, leafProgress);
+        drawLeaf(ctx, -10, -stemHeight * 0.35, -1, leafProgress);
+        drawLeaf(ctx, 10, -stemHeight * 0.6, 1, leafProgress);
       }
 
       ctx.restore();
@@ -253,15 +275,14 @@ document.addEventListener('DOMContentLoaded', () => {
       for (let i = 0; i < 5; i++) {
         const angle = (i / 5) * Math.PI * 2;
         ctx.beginPath();
-        ctx.ellipse(Math.cos(angle) * 8, Math.sin(angle) * 4 + 5, 7 * dpr, 18 * dpr, angle + Math.PI / 2, 0, Math.PI * 2);
+        ctx.ellipse(Math.cos(angle) * 8, Math.sin(angle) * 4 + 5, 6, 16, angle + Math.PI / 2, 0, Math.PI * 2);
         ctx.fill();
       }
       ctx.restore();
 
       // Petal Layers (Outer to Inner)
       const numPetalLayers = 7;
-      const basePetalScale = Math.min(w, h) * 0.26;
-      const maxPetalRadius = basePetalScale;
+      const maxPetalRadius = Math.min(w, h) * 0.28;
 
       for (let layer = numPetalLayers; layer >= 1; layer--) {
         const layerProgress = Math.min(Math.max((roseProgress - (numPetalLayers - layer) * 0.1) / 0.45, 0), 1);
@@ -291,7 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           ctx.fillStyle = petalGrad;
           ctx.shadowColor = theme.dark;
-          ctx.shadowBlur = 15 * dpr;
+          ctx.shadowBlur = 15;
 
           ctx.beginPath();
           ctx.moveTo(0, 0);
@@ -314,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           // Petal Edge Highlight Line
           ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-          ctx.lineWidth = 1.2 * dpr;
+          ctx.lineWidth = 1.2;
           ctx.stroke();
 
           ctx.restore();
@@ -325,9 +346,9 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.save();
       ctx.fillStyle = theme.light;
       ctx.shadowColor = theme.primary;
-      ctx.shadowBlur = 22 * dpr;
+      ctx.shadowBlur = 22;
       ctx.beginPath();
-      ctx.arc(0, 0, 14 * dpr * Math.min(roseProgress * 1.5, 1), 0, Math.PI * 2);
+      ctx.arc(0, 0, 12 * Math.min(roseProgress * 1.5, 1), 0, Math.PI * 2);
       ctx.fill();
       ctx.restore();
 
